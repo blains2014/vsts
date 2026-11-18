@@ -1,0 +1,31 @@
+name: Build Windows VST3 & Installer
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure CMake
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build VST3 Release
+        run: cmake --build build --config Release --target OSOTRUXE_VST3
+
+      - name: Build Windows Installer (Inno Setup)
+        run: |
+          choco install innosetup -y
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\OSOTRUXE.iss
+
+      - name: Upload VST3 & Installer Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: OSOTRUXE-Windows-VST3
+          path: |
+            build/OSOTRUXE_artefacts/Release/VST3/OSOTRUXE.vst3
+            installer/Output/OSOTRUXE_Windows_Installer.exe
